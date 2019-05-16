@@ -88,10 +88,12 @@ class CycleGan:
         self.Dy_optim.step()
         return Dy_loss.item()
 
-    def train_one_epoch(self):
+    def train_one_epoch(self, epoch):
         G_losses, Dx_losses, Dy_losses, batch_sizes = [], [], [], []
         num_iters = min(len(self.trainloader_x), len(self.trainloader_y))
-        for (x, _), (y, _) in tqdm(zip(self.trainloader_x, self.trainloader_y), total=num_iters):
+        for (x, _), (y, _) in tqdm(
+            zip(self.trainloader_x, self.trainloader_y), total=num_iters, desc=f"Epoch={epoch}"
+        ):
             if x.size(0) != y.size(0):
                 break
             x = rescale(x.to(self.device))
@@ -108,7 +110,7 @@ class CycleGan:
     def train(self):
         for epoch in tqdm(range(1, self.config.num_epochs + 1)):
             start_time = time.time()
-            G_loss, Dx_loss, Dy_loss = self.train_one_epoch()
+            G_loss, Dx_loss, Dy_loss = self.train_one_epoch(epoch)
             end_time = time.time()
             self._checkpoint(epoch, start_time, end_time, G_loss, Dx_loss, Dy_loss)
 
