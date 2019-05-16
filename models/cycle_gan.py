@@ -7,7 +7,7 @@ import torchvision
 import numpy as np
 import matplotlib.pyplot as plt
 from .discriminator import Discriminator
-from .generator import CycleGenerator
+from .generator import Generator
 from .utils import rescale, imshow, to_timedict
 
 
@@ -37,8 +37,8 @@ class CycleGan:
         # D's and G's
         self.Dx = Discriminator(config.channel_size).to(device)
         self.Dy = Discriminator(config.channel_size).to(device)
-        self.Gx2y = CycleGenerator(config.channel_size, config.num_residuals).to(device)
-        self.Gy2x = CycleGenerator(config.channel_size, config.num_residuals).to(device)
+        self.Gx2y = Generator(config.channel_size, config.num_residuals).to(device)
+        self.Gy2x = Generator(config.channel_size, config.num_residuals).to(device)
         # optimizers
         lr = config.learning_rate
         betas = (config.beta1, config.beta2)

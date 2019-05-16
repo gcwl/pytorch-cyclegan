@@ -14,7 +14,7 @@ class Residual(nn.Module):
         return x + compose(self.conv1, self.conv2)(x)
 
 
-class CycleGenerator(nn.Module):
+class Generator(nn.Module):
     def __init__(self, channel_size, num_residuals):
         super().__init__()
         self.conv1 = Conv(3, channel_size, 4, 2, 1)
