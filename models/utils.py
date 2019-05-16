@@ -47,52 +47,6 @@ def rescale(x, from_range=(0, 1), to_range=(-1, 1)):
     return (to_max - to_min) / (fr_max - fr_min) * (x - fr_min) + to_min
 
 
-# class _Conv(nn.Module):
-#     def __init__(
-#         self,
-#         in_channels,
-#         out_channels,
-#         kernel_size,
-#         stride,
-#         padding,
-#         conv_func=nn.Conv2d,
-#         batch_norm=True,
-#         activation=lambda: nn.ReLU(inplace=True),
-#     ):
-#         super().__init__()
-#         if batch_norm:
-#             self.conv = conv_func(
-#                 in_channels, out_channels, kernel_size, stride, padding, bias=False
-#             )
-#             self.bn = nn.BatchNorm2d(out_channels)
-#         else:
-#             self.conv = conv_func(in_channels, out_channels, kernel_size, stride, padding)
-#             self.bn = None
-#         self.act = activation()
-
-#     def forward(self, x):
-#         return compose(self.conv, self.bn, self.act)(x)
-
-
-# def _conv(
-#     in_channels,
-#     out_channels,
-#     kernel_size,
-#     stride,
-#     padding,
-#     conv_func=nn.Conv2d,
-#     batch_norm=True,
-#     act_func=partial(nn.ReLU, inplace=True),
-# ):
-#     assert conv_func in (nn.Conv2d, nn.ConvTranspose2d)
-#     modules = [
-#         conv_func(in_channels, out_channels, kernel_size, stride, padding, bias=not batch_norm),
-#         nn.BatchNorm2d(out_channels) if batch_norm else None,
-#         act_func() if act_func else None,
-#     ]
-#     return nn.Sequential(*[m for m in modules if m])
-
-
 def _conv(
     in_channels,
     out_channels,
