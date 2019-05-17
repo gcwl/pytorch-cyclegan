@@ -69,6 +69,7 @@ class CycleGan:
     def train_Dx(self, x, y):
         self.Dx_optim.zero_grad()
         # generate fake_x from y
+        with torch.no_grad():
         fake_x = self.Gy2x(y)
         # compute real_loss from (real) x, fake_loss from fake_x
         # sum real_loss and fake_loss
@@ -80,6 +81,7 @@ class CycleGan:
     def train_Dy(self, x, y):
         self.Dy_optim.zero_grad()
         # generate fake_y from (real) x
+        with torch.no_grad():
         fake_y = self.Gx2y(x)
         # compute real_loss from (real) y, fake_loss from fake_y
         # sum real_loss and fake_loss
