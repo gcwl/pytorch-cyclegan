@@ -2,6 +2,7 @@ import time
 from tqdm.auto import tqdm
 from itertools import chain
 import torch
+import torch.nn.functional as F
 import torch.optim as optim
 import torchvision
 import numpy as np
@@ -9,21 +10,6 @@ import matplotlib.pyplot as plt
 from .discriminator import Discriminator
 from .generator import Generator
 from .utils import rescale, imshow, to_timedict
-
-
-def fake_loss(t):
-    """Compute MSE of discriminator output against a fake (0)"""
-    return torch.mean(t ** 2)
-
-
-def real_loss(t):
-    """Compute MSE of discriminator output against a real (1)"""
-    return torch.mean((t - 1) ** 2)
-
-
-def cycle_loss(real, reconstructed):
-    """Compute MAE of real against reconstructed"""
-    return torch.mean(torch.abs(real - reconstructed))
 
 
 class CycleGan:
@@ -46,6 +32,10 @@ class CycleGan:
         self.Dy_optim = optim.Adam(self.Dy.parameters(), lr=lr, betas=betas)
         G_params = chain(self.Gx2y.parameters(), self.Gy2x.parameters())
         self.G_optim = optim.Adam(G_params, lr=lr, betas=betas)
+        # loss functions
+        self.real_loss = lambda t: F.mse_loss(t, torch.ones_like(t))
+        self.fake_loss = lambda t: F.mse_loss(t, torch.zeros_like(t))
+        self.cycle_loss = F.l1_loss
 
     def train_G(self, x, y):
         self.G_optim.zero_grad()
@@ -57,10 +47,10 @@ class CycleGan:
         reconstructed_y = self.Gx2y(fake_x)
         # generator loss
         G_loss = (
-            real_loss(self.Dx(fake_x))
-            + real_loss(self.Dy(fake_y))
-            + cycle_loss(x, reconstructed_x) * self.config.cycle_loss_multiplier
-            + cycle_loss(y, reconstructed_y) * self.config.cycle_loss_multiplier
+            self.real_loss(self.Dx(fake_x))
+            + self.real_loss(self.Dy(fake_y))
+            + self.cycle_loss(x, reconstructed_x) * self.config.cycle_loss_multiplier
+            + self.cycle_loss(y, reconstructed_y) * self.config.cycle_loss_multiplier
         )
         G_loss.backward()
         self.G_optim.step()
@@ -70,10 +60,10 @@ class CycleGan:
         self.Dx_optim.zero_grad()
         # generate fake_x from y
         with torch.no_grad():
-        fake_x = self.Gy2x(y)
+            fake_x = self.Gy2x(y)
         # compute real_loss from (real) x, fake_loss from fake_x
         # sum real_loss and fake_loss
-        Dx_loss = real_loss(self.Dx(x)) + fake_loss(self.Dx(fake_x))
+        Dx_loss = self.real_loss(self.Dx(x)) + self.fake_loss(self.Dx(fake_x))
         Dx_loss.backward()
         self.Dx_optim.step()
         return Dx_loss.item()
@@ -82,10 +72,10 @@ class CycleGan:
         self.Dy_optim.zero_grad()
         # generate fake_y from (real) x
         with torch.no_grad():
-        fake_y = self.Gx2y(x)
+            fake_y = self.Gx2y(x)
         # compute real_loss from (real) y, fake_loss from fake_y
         # sum real_loss and fake_loss
-        Dy_loss = real_loss(self.Dy(y)) + fake_loss(self.Dy(fake_y))
+        Dy_loss = self.real_loss(self.Dy(y)) + self.fake_loss(self.Dy(fake_y))
         Dy_loss.backward()
         self.Dy_optim.step()
         return Dy_loss.item()
